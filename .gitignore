@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.devvit/
+.env
+*.tsbuildinfo
+
+# internal agent deploy notes (kept local, not for public repo)
+DEPLOY.md

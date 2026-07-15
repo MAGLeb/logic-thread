@@ -1,0 +1,49 @@
+{
+  "$schema": "https://developers.reddit.com/schema/config-file.v1.json",
+  "name": "deducto-puzzle",
+  "post": {
+    "dir": "dist/client",
+    "entrypoints": {
+      "default": {
+        "entry": "index.html",
+        "height": "tall"
+      }
+    }
+  },
+  "server": {
+    "dir": "dist/server",
+    "entry": "index.cjs"
+  },
+  "permissions": {
+    "redis": true,
+    "reddit": {
+      "enable": true,
+      "scope": "user"
+    }
+  },
+  "menu": {
+    "items": [
+      {
+        "label": "Deducto: publish a case",
+        "description": "Create a new daily deduction post",
+        "forUserType": "moderator",
+        "location": [
+          "subreddit"
+        ],
+        "endpoint": "/internal/menu/create-post"
+      },
+      {
+        "label": "Deducto: publish showcase (judges)",
+        "description": "Create a fixed demo post, decoupled from the daily vote ramp",
+        "forUserType": "moderator",
+        "location": [
+          "subreddit"
+        ],
+        "endpoint": "/internal/menu/create-showcase"
+      }
+    ]
+  },
+  "dev": {
+    "subreddit": "deducto_puzzle_dev"
+  }
+}
