@@ -1,19 +1,19 @@
 // Deducto - difficulty engine. A deterministic TypeScript port of a Python reference solver,
 // model-for-model, parity-checked by engine.test.ts (same Case #0/#1 anchors + fork).
 //
-//   Puzzle  - задача + brute-force уникальность + WEAK-модель (домены на подозреваемого).
-//   Grid    - GRID-модель (все попарные сетки value×value + транзитивность).
-//   classify() - тир по вилке двух моделей: 🟢 weak / 🟡 grid-not-weak / 🔴 не grid.
-//   generate() - сборка кейса заданного тира: seeded-решение → пул истинных улик → отбор.
+//   Puzzle  - problem + brute-force uniqueness + WEAK model (domains per suspect).
+//   Grid    - GRID model (all pairwise value×value grids + transitivity).
+//   classify() - tier by the fork of two models: 🟢 weak / 🟡 grid-not-weak / 🔴 not grid.
+//   generate() - assembles a case of the given tier: seeded solution → pool of true clues → selection.
 //
-// Форма улик - см. shared/types.ts. Логика детерминирована; ИИ в неё не лезет.
+// Clue shape - see shared/types.ts. The logic is deterministic; the AI does not touch it.
 
 import type { Cats, Clue, Ref, Solution } from "../shared/types.js";
 import { clueKey } from "../shared/types.js";
 
 // ───────────────────────── seeded RNG (mulberry32) ─────────────────────────
-// Паритет с Python по ВЫВОДУ не требуется: тест проверяет, что генератор выдаёт
-// кейс заказанного тира с единственным решением, а не бит-в-бит ту же последовательность.
+// Parity with Python on OUTPUT is not required: the test checks that the generator produces
+// a case of the requested tier with a unique solution, not the bit-for-bit same sequence.
 export class RNG {
   private s: number;
   constructor(seed: number) { this.s = seed >>> 0; }
@@ -37,7 +37,7 @@ export class RNG {
   }
 }
 
-// Детерминированный seed из строки `subredditId:date:themeId` (xmur3).
+// Deterministic seed from the string `subredditId:date:themeId` (xmur3).
 export function seedFromString(str: string): number {
   let h = 1779033703 ^ str.length;
   for (let i = 0; i < str.length; i++) {
@@ -49,7 +49,7 @@ export function seedFromString(str: string): number {
   return (h ^ (h >>> 16)) >>> 0;
 }
 
-// ───────────────────────── комбинаторные помощники ─────────────────────────
+// ───────────────────────── combinatorial helpers ─────────────────────────
 export function permutations<T>(arr: T[]): T[][] {
   if (arr.length <= 1) return [arr.slice()];
   const out: T[][] = [];
@@ -66,7 +66,7 @@ function* product<T>(lists: T[][]): Generator<T[]> {
   for (const x of first) for (const r of product(rest)) yield [x, ...r];
 }
 
-// itertools.permutations(arr, 2): все упорядоченные пары i≠j.
+// itertools.permutations(arr, 2): all ordered pairs i≠j.
 function pairs<T>(arr: T[]): [T, T][] {
   const out: [T, T][] = [];
   for (let i = 0; i < arr.length; i++)
@@ -77,7 +77,7 @@ function pairs<T>(arr: T[]): [T, T][] {
 
 const isSingleton = (set: Set<string>, v: string) => set.size === 1 && set.has(v);
 
-// ───────────────────────── WEAK-модель + brute-force ─────────────────────────
+// ───────────────────────── WEAK model + brute-force ─────────────────────────
 type Poss = Record<string, Record<string, Set<string>>>; // cat -> suspect -> Set(values)
 
 export class Puzzle {
@@ -111,7 +111,7 @@ export class Puzzle {
     }
   }
 
-  // Число решений (обрыв на limit). Возвращает [n, пример_решения].
+  // Number of solutions (cut off at limit). Returns [n, example_solution].
   count(clues: Clue[], limit = 2): [number, Solution | null] {
     const cats = Object.keys(this.CATS);
     const perms: string[][][] = cats.map((c) => permutations(this.CATS[c]));
@@ -131,7 +131,7 @@ export class Puzzle {
     return [n, found];
   }
 
-  // ---- WEAK-пропагация: домены на подозреваемого, без сеток value×value ----
+  // ---- WEAK propagation: domains per suspect, no value×value grids ----
   private _fresh(): Poss {
     const poss: Poss = {};
     for (const cat of Object.keys(this.CATS)) {
@@ -213,7 +213,7 @@ export class Puzzle {
           }
         }
       }
-      // naked single (в строке) + hidden single (в колонке)
+      // naked single (in a row) + hidden single (in a column)
       for (const cat of Object.keys(this.CATS)) {
         for (const s of this.S) {
           if (poss[cat][s].size === 1) {
@@ -240,7 +240,7 @@ export class Puzzle {
   }
 }
 
-// ───────────────────────── GRID-модель (полный logic-grid) ─────────────────────────
+// ───────────────────────── GRID model (full logic-grid) ─────────────────────────
 type Node = [string, string]; // (cat, value); cat ∈ "suspect" | ...CATS
 
 export class Grid {
@@ -264,8 +264,8 @@ export class Grid {
     if (a[1] < b[1]) return -1; if (a[1] > b[1]) return 1;
     return 0;
   }
-  // Разделители | (cat↔value) и # (node↔node) в данных не встречаются
-  // (категории и значения - только буквы/цифры/двоеточие).
+  // The separators | (cat↔value) and # (node↔node) do not occur in the data
+  // (categories and values - only letters/digits/colon).
   private keyOf(a: Node, b: Node): string {
     const [x, y] = this.cmp(a, b) <= 0 ? [a, b] : [b, a];
     return `${x[0]}|${x[1]}#${y[0]}|${y[1]}`;
@@ -385,7 +385,7 @@ export class Grid {
   }
 }
 
-// ───────────────────────── классификация тира ─────────────────────────
+// ───────────────────────── tier classification ─────────────────────────
 export const GREEN = "🟢 green";
 export const YELLOW = "🟡 yellow";
 export const RED = "🔴 red";
@@ -398,14 +398,14 @@ export function classify(puzzle: Puzzle, clues?: Clue[]): TierInfo {
   const weak = puzzle.weak_forced(cl);
   const grid = new Grid(puzzle).grid_forced(cl);
   let tier: string;
-  if (n !== 1) tier = `⚠️ не уникально (${n} решений)`;
+  if (n !== 1) tier = `⚠️ not unique (${n} solutions)`;
   else if (weak) tier = GREEN;
   else if (grid) tier = YELLOW;
   else tier = RED;
   return { tier, solutions: n, weak_forced: weak, grid_forced: grid };
 }
 
-// ───────────────────────── генератор (без ИИ) ─────────────────────────
+// ───────────────────────── generator (no AI) ─────────────────────────
 export const DEFAULT_SUS = ["S1", "S2", "S3", "S4"];
 export const DEFAULT_CATS: Cats = {
   flair: ["Red", "Blue", "Green", "Purple"],
@@ -471,7 +471,7 @@ function _minimize(
   return clues;
 }
 
-// Собрать [solution, clues] заданного тира ('green'|'yellow'|'red') или null.
+// Assemble [solution, clues] of the given tier ('green'|'yellow'|'red') or null.
 export function generate(
   tier: string,
   rng: RNG,

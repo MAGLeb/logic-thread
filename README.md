@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/banner.png" alt="Deducto - daily deduction" width="880">
+</p>
+
 # Deducto - a daily deduction game for Reddit
 
 **One post a day. One logic grid. One provable answer.** Rule out the impossible, watch every clue turn 🟢, close the case - then defend your reasoning in the comments and come back tomorrow for the next one.

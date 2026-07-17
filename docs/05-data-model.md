@@ -1,70 +1,70 @@
-# Модель данных
+# Data model
 
-Deducto - ежедневная дедуктивная головоломка на Reddit (Devvit Web). Здесь описан реальный формат данных: типы из `src/shared/types.ts` и `src/shared/status.ts`, форма записи банка (`src/server/index.ts`) и раскладка Redis. Решение и таймер живут ТОЛЬКО на сервере - клиент решения не получает (анти-чит).
+Deducto is a daily deductive puzzle on Reddit (Devvit Web). This describes the real data format: types from `src/shared/types.ts` and `src/shared/status.ts`, the bank record shape (`src/server/index.ts`), and the Redis layout. The solution and timer live ONLY on the server - the client never receives the solution (anti-cheat).
 
-Сетка: 4 подозреваемых x 3 категории. Внутренние id категорий: `flair` (Coat), `time` (Time), `object` (Item).
+Grid: 4 suspects x 3 categories. Internal category ids: `flair` (Coat), `time` (Time), `object` (Item).
 
-## Общие типы (`src/shared/types.ts`)
+## Shared types (`src/shared/types.ts`)
 
-Клиент и сервер делят один модуль. Форма улики 1:1 совпадает с движком сложности (проверена паритетом против Python-солвера).
+Client and server share one module. The clue shape matches the difficulty engine 1:1 (verified for parity against the Python solver).
 
 ```ts
 type CatId = string;                                   // "flair" | "time" | "object"
-type Cats = Record<CatId, string[]>;                   // catId -> значения
+type Cats = Record<CatId, string[]>;                   // catId -> values
 type Solution = Record<string, Record<CatId, string>>; // suspect -> cat -> value
 
-// Ссылка в улике: ["s", suspectName] либо [catId, value].
+// Reference in a clue: ["s", suspectName] or [catId, value].
 type Ref = [string, string];
 
-// Улика - размеченное объединение по полю k (kind).
+// Clue - discriminated union on the k (kind) field.
 type Clue =
-  | { k: "ne";     s: string; cat: CatId; v: string } // подозреваемый != значение
-  | { k: "same";   a: Ref; b: Ref }                   // a,b - один владелец
-  | { k: "nsame";  a: Ref; b: Ref }                   // разные владельцы
+  | { k: "ne";     s: string; cat: CatId; v: string } // suspect != value
+  | { k: "same";   a: Ref; b: Ref }                   // a,b - same owner
+  | { k: "nsame";  a: Ref; b: Ref }                   // different owners
   | { k: "before"; a: Ref; b: Ref };                  // time(a) < time(b)
 
-// Каноничный ключ улики (дедуп и сравнение по значению, аналог repr()).
+// Canonical clue key (dedup and compare by value, analog of repr()).
 function clueKey(c: Clue): string;
 ```
 
-Ровно четыре вида улик: `ne`, `same`, `nsame`, `before`. Никаких `equal` / `after` / `location`.
+Exactly four clue kinds: `ne`, `same`, `nsame`, `before`. No `equal` / `after` / `location`.
 
-## Состояние поля (`src/shared/status.ts`)
+## Grid state (`src/shared/status.ts`)
 
-Отметки игрока считаются независимо от скрытого решения - честная обратная связь без спойлеров.
+The player's marks are computed independently of the hidden solution - honest feedback without spoilers.
 
 ```ts
-type Cell = 0 | 1 | 2;   // 0 = чисто (unknown), 1 = вычеркнуто, 2 = подтверждено
+type Cell = 0 | 1 | 2;   // 0 = clear (unknown), 1 = crossed out, 2 = confirmed
 type GridState = Record<string, Record<string, Record<string, Cell>>>; // cat -> suspect -> value -> Cell
 
 interface PuzzleCtx {
   suspects: string[];
-  catIds: string[];               // порядок категорий, ["flair","time","object"]
-  cats: Record<string, string[]>; // catId -> значения
-  timeValues: string[];           // упорядоченные значения времени (для before)
+  catIds: string[];               // category order, ["flair","time","object"]
+  cats: Record<string, string[]>; // catId -> values
+  timeValues: string[];           // ordered time values (for before)
 }
 ```
 
-Поле - двухпозиционный тумблер: тап переключает ячейку 0 <-> 1 (вычеркнуть значение / очистить). Состояние 2 (подтверждено) движок поддерживает, но текущий board-UI его не выставляет: «эффективный ответ» ячейки выводится из вычерков (единственный невычеркнутый кандидат). Дело закрывается автоматически, когда все 12 ячеек детерминированы и каждая улика зелёная. Кнопки «Проверить решение» и понятия «ошибки» нет.
+The grid is a two-state toggle: a tap switches a cell 0 <-> 1 (cross out value / clear). State 2 (confirmed) is supported by the engine, but the current board UI does not set it: the cell's "effective answer" is derived from the crossouts (the single non-crossed-out candidate). The case closes automatically when all 12 cells are determined and every clue is green. There is no "Check solution" button and no concept of an "error".
 
-## Запись банка (`src/server/index.ts`, `bank.json`)
+## Bank record (`src/server/index.ts`, `bank.json`)
 
 ```ts
 interface BankEntry {
   themeId: string;
-  tier: "green" | "yellow" | "red"; // в проде только green/yellow; red - бэклог
+  tier: "green" | "yellow" | "red"; // in prod only green/yellow; red - backlog
   suspects: string[];
-  objectTokens: string[];           // значения категории object
+  objectTokens: string[];           // values of the object category
   clues: Clue[];
-  solution: Solution;               // серверный секрет, клиенту не уходит
-  score?: number;                   // офлайновый скор сложности (build-bank.ts)
-  bin?: number;                     // квантильный бин сложности
+  solution: Solution;               // server secret, never sent to the client
+  score?: number;                   // offline difficulty score (build-bank.ts)
+  bin?: number;                     // difficulty quantile bin
 }
 ```
 
-Честные две ступени сложности: green (L0, разминка / решается на поле) и yellow (L1, ежедневная, нужна перекрёстная сверка). Красной/хардкорной ступени в проде нет.
+Two honest difficulty steps: green (L0, warm-up / solvable on the grid) and yellow (L1, the daily, requires cross-checking). There is no red/hardcore step in prod.
 
-Клиенту уходит публичная форма (без `solution`):
+The client receives the public shape (without `solution`):
 
 ```ts
 {
@@ -75,15 +75,15 @@ interface BankEntry {
 }
 ```
 
-## Персистентность (Redis)
+## Persistence (Redis)
 
-Прогресс и статистика лежат в Redis, а не в общих типах. Ключи:
+Progress and stats live in Redis, not in the shared types. Keys:
 
-- `att:{postId}:{userId}` - хэш попытки: `startedAt`, `grid` (JSON GridState), `activeSec`, `timeSec`, `hints`, `hinted`, `solved`, `solvedAt`, `solveOrder`, `vote`.
-- `lb:{postId}` - sorted set лидерборда: member = username, score = время решения (сек).
-- `vote:{postId}` - хэш голосов сложности: `Harder` / `Same` / `Softer`.
-- `solvedCount:{postId}` - счётчик, задаёт порядок финиша (`solveOrder`).
-- `streak:{userId}` - хэш серии: `current`, `best`, `lastDate`.
-- `tut:{userId}` - флаг «туториал показан».
-- `lt:level`, `lt:lastPostId`, `lt:bucketCursor:{level}`, `bank:cursor` - состояние ежедневного рампа сложности.
-- `onb:{userId}`, `pract:{userId}:{k}` - изолированная разминочная дорожка (без лидерборда / голоса / серии).
+- `att:{postId}:{userId}` - attempt hash: `startedAt`, `grid` (JSON GridState), `activeSec`, `timeSec`, `hints`, `hinted`, `solved`, `solvedAt`, `solveOrder`, `vote`.
+- `lb:{postId}` - leaderboard sorted set: member = username, score = solve time (sec).
+- `vote:{postId}` - difficulty vote hash: `Harder` / `Same` / `Softer`.
+- `solvedCount:{postId}` - counter, sets the finish order (`solveOrder`).
+- `streak:{userId}` - streak hash: `current`, `best`, `lastDate`.
+- `tut:{userId}` - "tutorial shown" flag.
+- `lt:level`, `lt:lastPostId`, `lt:bucketCursor:{level}`, `bank:cursor` - state of the daily difficulty ramp.
+- `onb:{userId}`, `pract:{userId}:{k}` - isolated warm-up track (no leaderboard / vote / streak).

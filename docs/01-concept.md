@@ -1,45 +1,45 @@
-# Концепция
+# Concept
 
-## Что это
+## What it is
 
-Deducto - ежедневная Reddit-native deductive puzzle game. Каждый день в сабреддите появляется интерактивный пост с новым «делом» (case). Игрок восстанавливает единственное правильное соответствие между сущностями по набору логических условий.
+Deducto is a daily Reddit-native deductive puzzle game. Every day an interactive post with a new "case" appears in the subreddit. The player reconstructs the single correct mapping between entities from a set of logical conditions.
 
-## Что делает игрок
+## What the player does
 
-Пример дела: **The Cursed Pizza**
+Example case: **The Cursed Pizza**
 
-Сетка: 4 подозреваемых x 3 категории (Coat / Time / Item).
+Grid: 4 suspects x 3 categories (Coat / Time / Item).
 - suspects: John, Mira, Paul, Omar
 - coats (Coat): Red, Blue, Green, Purple
 - times (Time): 09:00, 12:00, 15:00, 18:00
 - items (Item): Pizza, Keyboard, Spoon, Scroll
 
-Игрок читает clues («The pizza was carried by the purple coat.», «Omar was seen before John.», «John wasn't seen at 18:00.»…) и заполняет логическую сетку 4x3: каждому suspect - свой coat, time, item. Ячейка переключается в два состояния (вычеркнуть значение / сброс). Дело закрывается само, когда все 12 клеток выведены и все улики зелёные - нет кнопки «Check» и нет счётчика ошибок.
+The player reads clues ("The pizza was carried by the purple coat.", "Omar was seen before John.", "John wasn't seen at 18:00."...) and fills in the 4x3 logic grid: each suspect gets their own coat, time, item. A cell toggles between two states (cross out a value / reset). The case closes on its own once all 12 cells are deduced and all clues are green - there is no "Check" button and no error counter.
 
-## Главный hook
+## Main hook
 
-Сама головоломка - ядро. Победная часть - то, что происходит после решения:
+The puzzle itself is the core. The winning part is what happens after solving:
 
-1. **Результат**: время, hints, streak, «faster than X% detectives».
-2. **Deduction**: игрок защищает ход мысли («Clue 4 + Clue 7 prove John's coat is purple») в комментариях - это обсуждение решения, а не отдельная механика.
-3. **Вернуться завтра** - за новым делом и ради серии.
+1. **Result**: time, hints, streak, "faster than X% detectives".
+2. **Deduction**: the player defends their line of reasoning ("Clue 4 + Clue 7 prove John's coat is purple") in the comments - this is a discussion of the solution, not a separate mechanic.
+3. **Come back tomorrow** - for a new case and for the sake of the streak.
 
-## Почему Reddit
+## Why Reddit
 
-Reddit - не контейнер, а арена игрового цикла:
-- daily post как shared arena;
-- комментарии как deduction board - доска дедукций и споров о решении;
-- recurring inside jokes сабреддита;
-- top contributors по серии и скорости.
+Reddit is not a container but the arena of the game loop:
+- daily post as a shared arena;
+- comments as a deduction board - a board of deductions and arguments about the solution;
+- recurring inside jokes of the subreddit;
+- top contributors by streak and speed.
 
-## Аудитория
+## Audience
 
-- Любители Wordle, Sudoku, Nonograms, logic grid puzzles.
-- Reddit-пользователи, любящие обсуждать решения.
-- Сабреддиты с puzzle/games/logic/mystery культурой.
-- Casual игроки: 3-7 минут умственного напряжения в день.
+- Fans of Wordle, Sudoku, Nonograms, logic grid puzzles.
+- Reddit users who like discussing solutions.
+- Subreddits with a puzzle/games/logic/mystery culture.
+- Casual players: 3-7 minutes of mental effort per day.
 
-Первый puzzle должен решаться за 3-5 минут - не хардкор.
+The first puzzle should be solvable in 3-5 minutes - not hardcore.
 
 ## Core promise
 

@@ -68,7 +68,6 @@ function levelFromVote(level: number, tally: Record<VoteChoice, number>): number
 }
 
 // ── Onboarding: warm-up practice lane (own keys, isolated from the daily) ──
-const ONBOARD_N = 1;                                     // exactly one warm-up before the real daily
 const WARMUP_IDX = 78;                                   // very easy green (over-clued, score -2): just teach the mechanic
 function warmupIdx(_k: number): number { return WARMUP_IDX; }
 const onbKey = (userId: string) => `onb:${userId}`;      // # warm-ups completed (0..N)

@@ -1,26 +1,26 @@
-# Экраны и визуальный стиль
+# Screens and visual style
 
-## Главный принцип
+## Core principle
 
-Не «газетный лист» с длинной страницей текста, а **компактное игровое поле внутри Reddit-поста**: dark game board, compact HUD, большая центральная puzzle area, нижние controls. Ориентир - формат embedded-игры ~720-900 px шириной, ~500-650 px высотой, без скролла (или с минимальным).
+Not a "newspaper sheet" with a long page of text, but a **compact game board inside a Reddit post**: dark game board, compact HUD, large central puzzle area, bottom controls. The reference is an embedded-game format ~720-900 px wide, ~500-650 px tall, without scrolling (or with minimal scrolling).
 
-## Стиль
+## Style
 
-Полная система токенов (цвета с проверенными WCAG-контрастами, type scale, spacing, радиусы) - в [10-design-spec.md](10-design-spec.md). Кратко:
+The full token system (colors with verified WCAG contrasts, type scale, spacing, radii) is in [10-design-spec.md](10-design-spec.md). In brief:
 
-- Dark navy поверхности - elevation-лестница «выше = светлее» (`#0b101e → #131a2e → #1a2340 → #1f2846`);
-- Orange `#ff8c42` - **только** primary CTA, прогресс и бренд-эхо (не Reddit-оранжевый #FF4500 - отстройка от системного UI);
-- Green - подтверждено; насыщенный Red - только ошибки/нарушения (рутинное вычёркивание - приглушённый red-soft);
-- Yellow - эксклюзивно подсказки (hint);
-- Флаиры - палитра Okabe-Ito (CVD-safe) + **буква R/B/G/P в чипе**: состояние никогда не передаётся только цветом;
-- Текст - 3 ступени (`--text/--text-2/--muted`), шрифты - 8 ступеней шкалы, отступы - 4pt-сетка;
-- Rounded panels, minimal clutter; тап-цели ≥44px, честный горизонтальный скролл борда (sticky-имена + edge-fade) вместо ужимания элементов.
+- Dark navy surfaces - elevation ladder "higher = lighter" (`#0b101e → #131a2e → #1a2340 → #1f2846`);
+- Orange `#ff8c42` - **only** primary CTA, progress, and brand echo (not Reddit orange #FF4500 - to stand apart from the system UI);
+- Green - confirmed; saturated Red - only errors/violations (routine crossing-out uses a muted red-soft);
+- Yellow - exclusively hints;
+- Flairs - Okabe-Ito palette (CVD-safe) + **letter R/B/G/P in the chip**: state is never conveyed by color alone;
+- Text - 3 steps (`--text/--text-2/--muted`), fonts - 8 steps of the scale, spacing - 4pt grid;
+- Rounded panels, minimal clutter; tap targets ≥44px, honest horizontal scrolling of the board (sticky names + edge-fade) instead of squeezing elements.
 
-## Экран 1. Main Gameplay
+## Screen 1. Main Gameplay
 
-Поле - «один борд» (строки - suspects, колонки - категории, в ячейках чипы-кандидаты), без вкладок. Вкладочный вариант проверен на прототипе и отклонён: цепочки дедукций прыгают между категориями, а состояние не видно целиком.
+The board is "one board" (rows - suspects, columns - categories, candidate chips in the cells), without tabs. The tabbed variant was tested on the prototype and rejected: deduction chains jump between categories, and the state cannot be seen as a whole.
 
-Панель улик показывает живой статус каждой улики (🟢 выполнена / 🔴 нарушена / серая - не ясно) - обновляется после каждого хода. Наведение на улику НЕ подсвечивает поле - улики и сетка визуально независимы.
+The clue panel shows the live status of each clue (🟢 satisfied / 🔴 violated / gray - unclear) - updated after every move. Hovering over a clue does NOT highlight the board - clues and the grid are visually independent.
 
 ```
 ┌────────────────────────────────────────────┐
@@ -29,33 +29,34 @@
 │ Case #12: The Cursed Pizza Incident   🟡   │
 │ 🔥 3 | ✔ 5/12 | ⏱️ 04:31                    │
 ├──────────────────────┬─────────────────────┤
-│ Список улик           │ Logic Grid          │
-│ (живой статус 🟢🔴,    │ (занимает бóльшую   │
-│  поле не подсвечивает) │  часть экрана)      │
+│ Clue list             │ Logic Grid          │
+│ (live status 🟢🔴,     │ (takes up the       │
+│  board not highlighted)│  larger part of the │
+│                        │  screen)            │
 ├────────────────────────────────────────────┤
 │ ↺ ↩ ? ▷  ·  💡 Hint  ·  🏆 Results          │
 └────────────────────────────────────────────┘
 ```
 
-HUD (справа в casebar): 🔥 streak, ✔ прогресс N/12, ⏱️ время. Счётчика ошибок нет - в двухсостоя́ночном борде «неверных» ходов как таковых не существует: дело просто не закроется, пока раскладка не станет единственно верной. Бейдж сложности рядом с заголовком: 🟢 warm-up (L0) либо 🟡 daily (L1); красного/хардкор-уровня в проде нет (бэклог).
+HUD (right side of the casebar): 🔥 streak, ✔ progress N/12, ⏱️ time. There is no error counter - in a two-state board there is no such thing as "wrong" moves: the case simply will not close until the layout becomes the single correct one. The difficulty badge sits next to the title: 🟢 warm-up (L0) or 🟡 daily (L1); there is no red/hardcore level in production (backlog).
 
-Контролы (слева направо): ↺ Restart, ↩ Undo, ? Help, ▷ Warm-up (тренировка механики на лёгком кейсе), 💡 Hint. Кнопка 🏆 Results появляется только после автозакрытия дела. Кнопки «Check solution» нет: дело закрывается само, когда все 12 ячеек выведены и все улики зелёные. Решение и таймер живут только на сервере (анти-чит) - клиент решения не получает.
+Controls (left to right): ↺ Restart, ↩ Undo, ? Help, ▷ Warm-up (practicing the mechanic on an easy case), 💡 Hint. The 🏆 Results button appears only after the case auto-closes. There is no "Check solution" button: the case closes itself once all 12 cells are deduced and all clues are green. The solution and the timer live only on the server (anti-cheat) - the client never receives the solution.
 
-## Экран 2. Focused Deduction Mode (не реализовано)
+## Screen 2. Focused Deduction Mode (not implemented)
 
-Отдельного режима фокуса в прототипе нет: борд - чистый toggle состояний в ячейках, дедукция ведётся прямо на общем поле (наведение на улику поле не подсвечивает). Оставлено в спецификации как возможное расширение; текущий прототип его не показывает.
+There is no separate focus mode in the prototype: the board is a pure toggle of cell states, and deduction is done directly on the shared board (hovering over a clue does not highlight the board). Kept in the spec as a possible extension; the current prototype does not show it.
 
-## Экран 3. Result
+## Screen 3. Result
 
-Дело закрывается автоматически, и поверх тёмного борда поднимается светлая карточка результата (модалка):
+The case closes automatically, and a light result card (modal) rises over the dark board:
 
-- **Case closed!** - заголовок карточки;
-- герой: итоговое время и строка «faster than X% of detectives» (когда набралась статистика) либо «You're the Nth detective today», пока solvers мало;
-- строка статов: 💡 число подсказок, 🔥 streak (дней подряд), 🔍 detective-rank с обратным отсчётом до следующего ранга;
-- гистограмма распределения времени решения, твой бин помечен «You» - появляется, когда наберётся достаточно solvers; на demo/showcase-посте вместо неё показывается помеченная sample-гистограмма;
-- **Today's fastest** - мини-лидерборд топ-3 самых быстрых за день; если ты вне топ-3, ниже добавляется отдельная строка с твоим результатом;
-- **Full solution** - свёрнутая финальная таблица (Suspect / Coat / Time / Item), раскрывается по тапу;
-- **Tomorrow's case - you decide** (только на ежедневных постах; на demo/showcase скрыт): голос за сложность следующего дела - 🔥 Harder / ⚖️ Same / 🌿 Softer - и vote-bar с долями голосов; ниже запечатанный конверт следующего кейса (CASE #N · SEALED) и таймер «Opens in Xh Ym»;
-- кнопка **Play this case again**.
+- **Case closed!** - card title;
+- hero: final time and the line "faster than X% of detectives" (once statistics have accumulated) or "You're the Nth detective today" while there are still few solvers;
+- stat line: 💡 number of hints, 🔥 streak (days in a row), 🔍 detective-rank with a countdown to the next rank;
+- histogram of solve-time distribution, your bin marked "You" - appears once enough solvers have accumulated; on a demo/showcase post a labeled sample histogram is shown instead;
+- **Today's fastest** - a mini leaderboard of the top-3 fastest for the day; if you are outside the top-3, a separate line with your result is added below;
+- **Full solution** - a collapsed final table (Suspect / Coat / Time / Item), expands on tap;
+- **Tomorrow's case - you decide** (only on daily posts; hidden on demo/showcase): a vote for the difficulty of the next case - 🔥 Harder / ⚖️ Same / 🌿 Softer - and a vote-bar with the vote shares; below it, the sealed envelope of the next case (CASE #N · SEALED) and a timer "Opens in Xh Ym";
+- a **Play this case again** button.
 
-Обсуждение хода мысли идёт в нативной ленте комментариев под постом. Отдельной кнопки шеринга и «trail»-сводки на экране нет - убрано намеренно.
+Discussion of the line of reasoning happens in the native comment feed under the post. There is no separate share button or "trail" summary on the screen - removed on purpose.

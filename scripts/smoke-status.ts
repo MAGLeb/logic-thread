@@ -1,9 +1,9 @@
-// Smoke-тест общей клиент/сервер-логики (webview тут не запустить):
-// для каждого кейса банка ставим грид = решение и проверяем, что
-//   * effectiveCount === 12 (все ячейки выведены),
-//   * все улики со статусом "ok" (клиентское условие «решено»),
-//   * gradeGrid == "solved" (серверная проверка) - т.е. клиент и сервер согласны.
-// Плюс проверяем, что на пустом гриде статусы считаются без падений.
+// Smoke test of the shared client/server logic (the webview can't be launched here):
+// for each bank case we set grid = solution and check that
+//   * effectiveCount === 12 (all cells derived),
+//   * all clues have status "ok" (client's "solved" condition),
+//   * gradeGrid == "solved" (server check) - i.e. client and server agree.
+// Plus we check that on an empty grid the statuses are computed without crashes.
 import type { Clue, Solution } from "../src/shared/types.js";
 import {
   freshGrid, effectiveCount, effectiveValue, clueStatus,
@@ -23,7 +23,7 @@ function ctxFor(e: Entry): PuzzleCtx {
     timeValues: [...TIME_TOKENS] };
 }
 
-// Грид, где каждый solution-кубик confirmed(2), а конкурирующие значения crossed(1).
+// Grid where each solution cell is confirmed(2), and competing values are crossed(1).
 function solvedGrid(e: Entry, ctx: PuzzleCtx): GridState {
   const g = freshGrid(ctx);
   for (const c of CAT_IDS) for (const s of e.suspects) {
@@ -44,11 +44,11 @@ let fails = 0;
 for (let i = 0; i < BANK.length; i++) {
   const e = BANK[i];
   const ctx = ctxFor(e);
-  if (!THEME_BY_ID[e.themeId]) { console.log(`[FAIL] #${i}: нет темы ${e.themeId}`); fails++; continue; }
-  // пустой грид: статусы без падений + рендер текста
+  if (!THEME_BY_ID[e.themeId]) { console.log(`[FAIL] #${i}: no theme ${e.themeId}`); fails++; continue; }
+  // empty grid: statuses without crashes + text rendering
   const empty = freshGrid(ctx);
   for (const c of e.clues) { clueStatus(ctx, empty, c); renderClue(c, THEME_BY_ID[e.themeId]); }
-  // грид = решение
+  // grid = solution
   const g = solvedGrid(e, ctx);
   const full = effectiveCount(ctx, g) === 12;
   const allOk = e.clues.every((c) => clueStatus(ctx, g, c) === "ok");
@@ -60,8 +60,8 @@ for (let i = 0; i < BANK.length; i++) {
   }
 }
 
-console.log(`Проверено кейсов: ${BANK.length}`);
+console.log(`Cases checked: ${BANK.length}`);
 console.log(fails === 0
-  ? "OK ✅ - на решении все улики зелёные, клиент детектит solved, сервер подтверждает (клиент↔сервер согласны)"
-  : `ПРОВАЛОВ: ${fails} ❌`);
+  ? "OK ✅ - on the solution every clue is green, the client detects solved, the server confirms (client and server agree)"
+  : `FAILURES: ${fails} ❌`);
 process.exit(fails ? 1 : 0);

@@ -1,6 +1,6 @@
-// Живой статус улик и «эффективный ответ» - порт логики из prototype/index.html.
-// Всё считается ТОЛЬКО от отметок игрока (0=unknown,1=вычеркнуто,2=подтверждено),
-// а не от скрытого решения - честная обратная связь без спойлеров.
+// Live clue status and the "effective answer" - a port of the logic from prototype/index.html.
+// Everything is computed ONLY from the player's marks (0=unknown,1=crossed out,2=confirmed),
+// not from the hidden solution - honest feedback without spoilers.
 
 import type { Clue, Ref } from "./types.js";
 
@@ -9,9 +9,9 @@ export type GridState = Record<string, Record<string, Record<string, Cell>>>; //
 
 export interface PuzzleCtx {
   suspects: string[];
-  catIds: string[];                 // порядок категорий, напр. ["flair","time","object"]
-  cats: Record<string, string[]>;   // catId -> значения
-  timeValues: string[];             // упорядоченные значения времени
+  catIds: string[];                 // category order, e.g. ["flair","time","object"]
+  cats: Record<string, string[]>;   // catId -> values
+  timeValues: string[];             // ordered time values
 }
 
 export function freshGrid(ctx: PuzzleCtx): GridState {
@@ -26,7 +26,7 @@ export function freshGrid(ctx: PuzzleCtx): GridState {
   return grid;
 }
 
-// Кандидаты ячейки: подтверждённый (2) - единственный; иначе все невычеркнутые (0).
+// Cell candidates: confirmed (2) - the only one; otherwise all non-crossed-out (0).
 export function candSet(ctx: PuzzleCtx, g: GridState, c: string, s: string): string[] {
   const vals = ctx.cats[c];
   const yes = vals.find((v) => g[c][s][v] === 2);
@@ -34,7 +34,7 @@ export function candSet(ctx: PuzzleCtx, g: GridState, c: string, s: string): str
   return vals.filter((v) => g[c][s][v] === 0);
 }
 
-// Эффективный ответ ячейки: единственный оставшийся кандидат (или null).
+// Cell's effective answer: the single remaining candidate (or null).
 export function effectiveValue(ctx: PuzzleCtx, g: GridState, c: string, s: string): string | null {
   const cand = candSet(ctx, g, c, s);
   return cand.length === 1 ? cand[0] : null;
@@ -46,7 +46,7 @@ export function effectiveCount(ctx: PuzzleCtx, g: GridState): number {
   return n;
 }
 
-// Возможные владельцы значения (учитывая подтверждённое → единственный владелец).
+// Possible owners of a value (accounting for a confirmed one → single owner).
 export function possibleOwners(ctx: PuzzleCtx, g: GridState, cat: string, v: string): string[] {
   const confirmed = ctx.suspects.find((s) => g[cat][s][v] === 2);
   if (confirmed) return [confirmed];
@@ -90,7 +90,7 @@ export function clueStatus(ctx: PuzzleCtx, g: GridState, clue: Clue): ClueStat {
     case "nsame": {
       const A = possibleOwners(ctx, g, clue.a[0], clue.a[1]);
       const B = possibleOwners(ctx, g, clue.b[0], clue.b[1]);
-      if (!A.some((s) => B.includes(s))) return "ok"; // не могут быть одним владельцем
+      if (!A.some((s) => B.includes(s))) return "ok"; // cannot be the same owner
       const oa = detOwner(ctx, g, clue.a[0], clue.a[1]);
       const ob = detOwner(ctx, g, clue.b[0], clue.b[1]);
       return oa && oa === ob ? "bad" : "open";

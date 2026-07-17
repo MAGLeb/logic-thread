@@ -1,4 +1,4 @@
-// Сборка webview-клиента в dist/client (index.html + бандл main.ts).
+// Build of the webview client into dist/client (index.html + main.ts bundle).
 import { defineConfig } from "vite";
 
 export default defineConfig({

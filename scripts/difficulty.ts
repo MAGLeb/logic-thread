@@ -29,7 +29,7 @@ async function main() {
   console.log(`YELLOW (${yellow.length}): ${stat(yellow)}`);
 
   // text histogram of yellow scores (5-pt buckets) - does 🟡 spread or clump?
-  const lo = Math.min(...yellow), hi = Math.max(...yellow);
+  const lo = Math.min(...yellow);
   const W = 4;
   const bins: Record<number, number> = {};
   for (const s of yellow) { const b = Math.floor((s - lo) / W); bins[b] = (bins[b] ?? 0) + 1; }

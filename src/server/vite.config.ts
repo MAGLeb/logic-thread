@@ -1,4 +1,4 @@
-// Сборка сервера в самодостаточный CJS-бандл dist/server/index.cjs (Node builtins - внешние).
+// Build the server into a self-contained CJS bundle dist/server/index.cjs (Node builtins - external).
 import { defineConfig } from "vite";
 import { builtinModules } from "node:module";
 

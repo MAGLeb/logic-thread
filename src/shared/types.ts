@@ -1,20 +1,20 @@
 // Deducto - shared types (client + server).
 // The clue shape matches the difficulty engine 1:1 (parity-tested against a Python reference solver).
 
-export type CatId = string; // "flair" | "time" | "object" (+ в проде "location")
+export type CatId = string; // "flair" | "time" | "object" (+ "location" in prod)
 export type Cats = Record<CatId, string[]>;
 export type Solution = Record<string, Record<CatId, string>>; // suspect -> cat -> value
 
-// Ссылка в улике: ["s", suspectName] либо [catId, value].
+// Reference in a clue: ["s", suspectName] or [catId, value].
 export type Ref = [string, string];
 
 export type Clue =
-  | { k: "ne"; s: string; cat: CatId; v: string }        // подозреваемый != значение
-  | { k: "same"; a: Ref; b: Ref }                         // a,b = [catId, value] - один владелец
-  | { k: "nsame"; a: Ref; b: Ref }                        // разные владельцы
+  | { k: "ne"; s: string; cat: CatId; v: string }        // suspect != value
+  | { k: "same"; a: Ref; b: Ref }                         // a,b = [catId, value] - same owner
+  | { k: "nsame"; a: Ref; b: Ref }                        // different owners
   | { k: "before"; a: Ref; b: Ref };                      // time(a) < time(b)
 
-// Каноничный ключ улики - для дедупликации и сравнения по значению (аналог repr() в Python).
+// Canonical clue key - for deduplication and value comparison (analogous to repr() in Python).
 export function clueKey(c: Clue): string {
   switch (c.k) {
     case "ne": return `ne|${c.s}|${c.cat}|${c.v}`;

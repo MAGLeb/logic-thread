@@ -1,67 +1,67 @@
-# Геймплей и механики (Deducto)
+# Gameplay and mechanics (Deducto)
 
 ## Logic grid
 
-Основная сущность - **suspect**. Все остальные категории сопоставляются с suspect. Игрок решает всё в одном борде (строки - suspects, колонки - категории: Flair, Time, Object), без вкладок. Сетка фиксирована: 4 подозреваемых x 3 категории = 12 ячеек. Огромную классическую grid со всеми подтаблицами НЕ показываем - тяжело для Reddit UI.
+The core entity is a **suspect**. All other categories are matched against suspects. The player solves everything on a single board (rows - suspects, columns - categories: Flair, Time, Object), without tabs. The grid is fixed: 4 suspects x 3 categories = 12 cells. We do NOT show the huge classic grid with all sub-tables - too heavy for the Reddit UI.
 
-## Состояния ячейки
+## Cell states
 
 ```
-type Cell = 0 | 1 | 2   // 0 = unknown, 1 = вычеркнуто, 2 = подтверждено
+type Cell = 0 | 1 | 2   // 0 = unknown, 1 = crossed out, 2 = confirmed
 ```
 
-В борде tap переключает только 0 <-> 1 (обычный <-> вычеркнутый); состояние 2 движок поддерживает, но UI его не проставляет - «подтверждённый» ответ выводится сам как единственный оставшийся кандидат. Основной вид поля - «один борд»: строки - suspects, колонки - категории, внутри ячейки чипы-кандидаты (проверено на прототипе, победил вкладки).
+On the board, tap toggles only 0 <-> 1 (normal <-> crossed out); the engine supports state 2, but the UI never sets it - the "confirmed" answer surfaces on its own as the only remaining candidate. The main board view is "single board": rows - suspects, columns - categories, with candidate chips inside each cell (validated on the prototype, it beat tabs).
 
-## Взаимодействие: чистый toggle (без подтверждения)
+## Interaction: pure toggle (no confirmation)
 
-Главный принцип - **ничего не происходит само** на поле. Каждое изменение делает игрок; никаких каскадов, авто-вычёркиваний и авто-подтверждений (плейтесты 2-3: любая автоматизация, даже локальная, размывает понимание, что происходит).
+The main principle is that **nothing happens by itself** on the board. Every change is made by the player; no cascades, no auto-crossing-out, no auto-confirmations (playtests 2-3: any automation, even local, blurs the understanding of what is happening).
 
-В «одном борде» у чипа только два состояния - обычный и вычеркнутый:
+In the "single board", a chip has only two states - normal and crossed out:
 
-- tap по кандидату - вычеркнуть / вернуть (чистый toggle: нажал = активировал / дезактивировал);
-- отдельного «подтвердить» нет. Когда в ячейке остаётся один невычеркнутый кандидат, он и есть ответ (виден сам собой на фоне приглушённых вычеркнутых) - но остаётся обычным toggle-чипом: tap по нему просто вычёркивает его назад;
-- undo отменяет ровно один ход (одну ячейку).
+- tap on a candidate - cross out / restore (pure toggle: tapped = activated / deactivated);
+- there is no separate "confirm". When a single non-crossed-out candidate remains in a cell, it is the answer (it stands out on its own against the dimmed crossed-out ones) - but it stays a regular toggle chip: tapping it simply crosses it back out;
+- undo reverts exactly one move (one cell).
 
-Вычёркивание - единственное действие. Счётчик n/12 засчитывает единственного оставшегося (невычеркнутого) кандидата в каждой ячейке за ответ - **«я всё вычеркнул» = «я решил»** (плейтесты 1 и 4). Все версии всегда видны, ничего не схлопывается: пока разгадываешь, важно видеть и вычеркнутые варианты (плейтест 4).
+Crossing out is the only action. The n/12 counter counts the single remaining (non-crossed-out) candidate in each cell as an answer - **"I crossed everything out" = "I solved it"** (playtests 1 and 4). All options are always visible, nothing collapses: while solving, it is important to see the crossed-out options too (playtest 4).
 
-## Живой статус улик
+## Live clue status
 
-Улики в списке подсвечиваются по текущим отметкам игрока:
+Clues in the list are highlighted based on the player's current marks:
 
-- 🟢 выполнена (ok);
-- 🔴 нарушена (отметки противоречат улике - проверь ходы);
-- серая - пока не ясно (open).
+- 🟢 satisfied (ok);
+- 🔴 violated (marks contradict the clue - check your moves);
+- gray - not yet clear (open).
 
-Статус считается от отметок игрока, а не от скрытого решения - честная обратная связь без спойлеров. Наведение/выбор улики НЕ подсвечивает и не обводит ячейки поля (плейтест 3: это путало) - улики и поле визуально независимы.
+The status is computed from the player's marks, not from the hidden solution - honest feedback without spoilers. Hovering over / selecting a clue does NOT highlight or outline the board cells (playtest 3: this was confusing) - clues and the board are visually independent.
 
-## Авто-закрытие дела (нет кнопки «Проверить», нет ошибок)
+## Auto-closing the case (no "Check" button, no mistakes)
 
-Отдельной кнопки «Проверить дело» нет, и понятия «ошибка» (mistake) тоже нет. Дело закрывается само, как только одновременно выполнены оба условия:
+There is no separate "Check case" button, and there is no concept of a "mistake" either. The case closes on its own as soon as both conditions are met simultaneously:
 
-1. **все 12 ячеек выведены** - в каждой из 4x3 клеток остался ровно один невычеркнутый кандидат (effectiveCount == suspects x categories);
-2. **каждая улика зелёная** - clueStatus для всех улик равен `ok`.
+1. **all 12 cells are deduced** - exactly one non-crossed-out candidate remains in each of the 4x3 cells (effectiveCount == suspects x categories);
+2. **every clue is green** - clueStatus for all clues equals `ok`.
 
-Как только оба условия сходятся, клиент сам отправляет грид на сервер (`/api/check`), сервер сверяет его со скрытым решением (анти-чит: решение и таймер живут ТОЛЬКО на сервере, клиент их никогда не получает) и возвращает `solved` -> экран результата. Поскольку у кейса единственное решение, «все клетки выведены + все улики зелёные» = правильный ответ; проиграть или «получить ошибку» нельзя. Незаполненный или противоречивый грид просто не триггерит закрытие - игрок продолжает разгадывать.
+As soon as both conditions align, the client itself submits the grid to the server (`/api/check`), the server checks it against the hidden solution (anti-cheat: the solution and the timer live ONLY on the server, the client never receives them) and returns `solved` -> result screen. Since the case has a single solution, "all cells deduced + all clues green" = the correct answer; you cannot lose or "get a mistake". An incomplete or contradictory grid simply does not trigger the close - the player keeps solving.
 
-## Hints (3 уровня, для MVP достаточно первого)
+## Hints (3 levels, the first is enough for the MVP)
 
-1. Подсветить полезный clue и связанные сущности.
-2. Подсветить relevant row/column.
-3. Поставить одну forced deduction.
+1. Highlight a useful clue and the related entities.
+2. Highlight the relevant row/column.
+3. Place one forced deduction.
 
-## Обсуждение решения в комментах
+## Discussing the solution in the comments
 
-Отдельной in-game карточки-механики нет. После решения игрок объясняет ход мысли органически в комментах к daily-посту - там же спорит и сверяет цепочку с другими детективами:
+There is no separate in-game card mechanic. After solving, the player explains their line of reasoning organically in the comments on the daily post - and there they argue and cross-check the chain with other detectives:
 
-> 🧠 Clue 2 + Clue 5 доказывают: у Mira не могло быть жёлтого flair.
+> 🧠 Clue 2 + Clue 5 prove: Mira could not have had a yellow flair.
 
-Комментарии - это доска дедукций и споров о решении, живёт нативно в треде Reddit.
+The comments are a board for deductions and debates about the solution, living natively in the Reddit thread.
 
-## Состояния игры
+## Game states
 
-1. **Not started** - case title, сразу grid и первый clue (без отдельного Start-экрана).
+1. **Not started** - case title, the grid and the first clue right away (no separate Start screen).
 2. **In progress** - timer, hints, active clue, grid, controls.
-3. **Solved** - оба условия авто-закрытия сошлись, сервер подтвердил -> переход на экран результата.
-4. **Post-solve** - результат (время / серия / перцентиль), обсуждение в комментах, обратный отсчёт до нового дела, лидерборд.
+3. **Solved** - both auto-close conditions have aligned, the server confirmed -> transition to the result screen.
+4. **Post-solve** - result (time / streak / percentile), discussion in the comments, countdown to the new case, leaderboard.
 
-Во время решения НЕ показывать: leaderboard, длинные списки. Всё это - награда после решения.
+While solving, do NOT show: leaderboard, long lists. All of that is a reward after solving.
