@@ -1,4 +1,4 @@
-// Logic Thread - webview client. UI ported from prototype/index.html; data & verification from the server.
+// Deducto - webview client. Rendering only; all data & verification come from the server.
 // No solution on the client: "solved" = all 12 cells deduced and every clue green (unique solution ⇒
 // that equals the correct answer); the server confirms and records the result.
 
@@ -109,7 +109,7 @@ interface DailyResp {
   meta: {
     solversTotal: number; streak: number; showcase: boolean; epilogue: Epilogue | null;
     vote: { choice: string | null; tally: VoteTally; leader: { tier: string; pct: number; total: number } };
-    showTutorial: boolean; onboarding?: { done: number; total: number; active: boolean }; nextOpensInMin: number; nextCaseNumber: number;
+    showTutorial: boolean; nextOpensInMin: number; nextCaseNumber: number;
   };
 }
 
@@ -124,7 +124,6 @@ let clues: Clue[] = [];
 let grid: GridState;
 let history: { cat: string; s: string; v: string; from: Cell; to: Cell }[][] = [];
 let hints = 0;
-let hintClueId: number | null = null;
 let seconds = 0;
 let solved = false;
 let finalizing = false;
@@ -132,7 +131,6 @@ let lastResults: Results | null = null;
 let diffVote: string | null = null;
 let practiceMode = false;            // opt-in warm-up lane; isolated from the daily
 const rowsDone = new Set<string>();
-let clueFirstOk: Record<number, number> = {};
 interface HintFact { cat: string; suspect: string; value: string }
 let revealedHints: HintFact[] = []; // every cell revealed so far (server-backed) - reviewable log
 let hintIdx = 0;                    // which hint the pager currently shows
@@ -170,7 +168,6 @@ function applyMove(cat: string, s: string, v: string, target: Cell) {
   history.push([{ cat, s, v, from, to: target }]);
   grid[cat][s][v] = target;
   renderGrid(); renderHUD(); renderClues();
-  trackClueProgress();
   scheduleSave();
   maybeFinalize();
 }
@@ -180,16 +177,8 @@ function undo() {
   const move = history.pop();
   if (!move) { toast("Nothing to undo", "info"); return; }
   for (let i = move.length - 1; i >= 0; i--) grid[move[i].cat][move[i].s][move[i].v] = move[i].from;
-  for (const id in clueFirstOk) if (clueFirstOk[id] > history.length) delete clueFirstOk[Number(id)];
   renderGrid(); renderHUD(); renderClues();
   scheduleSave();
-}
-
-// trail data: when each clue first turned "satisfied"
-function trackClueProgress() {
-  clues.forEach((c, i) => {
-    if (!(i in clueFirstOk) && clueStatus(ctx, grid, c) === "ok") clueFirstOk[i] = history.length;
-  });
 }
 
 function allCluesOk(): boolean { return clues.every((c) => clueStatus(ctx, grid, c) === "ok"); }
@@ -338,7 +327,6 @@ function renderClueList() {
     const stat = clueStatus(ctx, grid, c);
     const div = document.createElement("div");
     div.className = "clue-item"
-      + (hintClueId === i ? " hint-target" : "")
       + (stat === "ok" ? " st-ok" : stat === "bad" ? " st-bad" : "");
     const num = document.createElement("span");
     num.className = "num";
@@ -541,7 +529,6 @@ function renderMiniLeaderboard(r: Results, demo = false) {
 function renderHistogram(counts: number[], youIdx: number, better: number, caption?: string) {
   const total = counts.reduce((a, b) => a + b, 0);
   const maxC = Math.max(...counts, 1);
-  const maxIdx = counts.indexOf(maxC);
   $("r-histcap").textContent = caption ?? `Faster than ${better}% of ${total.toLocaleString("en-US")} detectives`;
   const hist = $("r-hist"), histx = $("r-histx");
   hist.innerHTML = ""; histx.innerHTML = "";
@@ -550,12 +537,14 @@ function renderHistogram(counts: number[], youIdx: number, better: number, capti
     bin.className = "bin" + (i === youIdx ? " you" : "");
     bin.title = `${BIN_LABELS[i]} min · ${c.toLocaleString("en-US")} detectives`;
     const cnt = document.createElement("span"); cnt.className = "cnt";
-    cnt.textContent = i === youIdx ? (i === maxIdx ? `you · ${maxC.toLocaleString("en-US")}` : "you") : (i === maxIdx ? maxC.toLocaleString("en-US") : "");
+    cnt.textContent = c.toLocaleString("en-US");
     const bar = document.createElement("span"); bar.className = "bar";
-    bar.style.height = Math.max(3, Math.round((c / maxC) * 48)) + "px";
+    bar.style.height = Math.max(4, Math.round((c / maxC) * 66)) + "px";
     bin.append(cnt, bar); hist.appendChild(bin);
     const lbl = document.createElement("span"); lbl.className = "lbl" + (i === youIdx ? " you" : "");
-    lbl.textContent = BIN_LABELS[i]; histx.appendChild(lbl);
+    if (i === youIdx) lbl.innerHTML = `${BIN_LABELS[i]}<span class="you-tag">You</span>`;
+    else lbl.textContent = BIN_LABELS[i];
+    histx.appendChild(lbl);
   });
 }
 
@@ -756,7 +745,7 @@ function playAgain() {
 }
 
 function clearBoard() {
-  grid = freshGrid(ctx); history = []; hintClueId = null; rowsDone.clear(); clueFirstOk = {};
+  grid = freshGrid(ctx); history = []; rowsDone.clear();
   hideNotice();
   renderAll(); scheduleSave();
 }
@@ -806,7 +795,7 @@ function applyPuzzleData(pz: DailyResp["puzzle"], savedGrid: GridState | null) {
     timeValues: [...TIME_TOKENS],
   };
   grid = gridMatchesCtx(savedGrid, ctx) && savedGrid ? savedGrid : freshGrid(ctx);
-  hints = 0; solved = false; seconds = 0; history = []; rowsDone.clear(); clueFirstOk = {};
+  hints = 0; solved = false; seconds = 0; history = []; rowsDone.clear();
   renderAll(); updateHintBtn();
 }
 
@@ -866,7 +855,6 @@ async function init() {
   renderAll();
   setStreakHud(META.streak ?? 0);
   updateHintBtn();
-  if (solved) trackClueProgress();
 
   if (solved) {
     $("btn-hint").setAttribute("hidden", "");

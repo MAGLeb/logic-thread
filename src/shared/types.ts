@@ -1,5 +1,5 @@
-// Общие типы Logic Thread (клиент + сервер).
-// Форма улик 1:1 с reference-движком engine/engine.py и с `def` из прототипа.
+// Deducto - shared types (client + server).
+// The clue shape matches the difficulty engine 1:1 (parity-tested against a Python reference solver).
 
 export type CatId = string; // "flair" | "time" | "object" (+ в проде "location")
 export type Cats = Record<CatId, string[]>;

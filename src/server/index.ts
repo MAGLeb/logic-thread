@@ -1,4 +1,4 @@
-// Logic Thread - Devvit Web server (source of truth).
+// Deducto - Devvit Web server (source of truth).
 // /api/* - webview; /internal/* - menu & cron (daily post creation).
 // The case solution and the timer live only on the server (anti-cheat); the client gets no solution.
 
@@ -182,7 +182,6 @@ router.get("/api/daily", async (_req, res) => {
   const solvers = await redis.zCard(lbKey(postId));
   const tally = await voteTally(postId);
   const streak = userId ? Number((await redis.hGetAll(streakKey(userId))).current ?? 0) : 0;
-  const onbDone = userId ? Number((await redis.get(onbKey(userId))) ?? 0) : ONBOARD_N;
 
   res.json({
     puzzle: publicPuzzle(entry, idx),
@@ -194,7 +193,6 @@ router.get("/api/daily", async (_req, res) => {
       epilogue: postMeta().epilogue ?? null,
       vote: { choice: attempt.vote, tally, leader: voteLeader(tally) },
       showTutorial,
-      onboarding: { done: onbDone, total: ONBOARD_N, active: onbDone < ONBOARD_N },
       nextOpensInMin: minutesToUtcMidnight(),
       nextCaseNumber: caseNumber() + 1,
     },

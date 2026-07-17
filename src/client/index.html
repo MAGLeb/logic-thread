@@ -93,7 +93,6 @@
   .cs-clue.st-bad .num { background: var(--red); border-color: var(--red); color: var(--on-accent); font-weight: 800; }
   .cs-clue.cs-done { color: var(--green); font-weight: 600; justify-content: center; align-items: center; }
   .clue-item { display: flex; gap: 6px; padding: 3px 10px 3px 8px; font-size: var(--fs-xs); line-height: 1.35; color: var(--text-2); border-left: 3px solid transparent; }
-  .clue-item.hint-target { background: var(--hint-bg); border-left-color: var(--yellow); }
   .clue-item.st-ok .txt { opacity: .68; text-decoration: line-through; text-decoration-color: var(--muted); text-decoration-thickness: 1px; }
   .clue-item.st-bad { border-left-color: var(--red); background: rgba(255,90,95,.06); }
   .clue-item .num { flex-shrink: 0; width: 16px; height: 16px; border-radius: var(--r-pill); border: 1px solid var(--border-strong); font-size: 10px; display: flex; align-items: center; justify-content: center; color: var(--muted); margin-top: 1px; font-variant-numeric: tabular-nums; }
@@ -209,15 +208,16 @@
 
   .hist-block { margin-top: 6px; }
   .hist-cap { text-align: center; color: var(--text-2); font-size: var(--fs-sm); font-weight: 600; margin-bottom: 3px; }
-  .hist { display: flex; align-items: flex-end; gap: 4px; height: 60px; padding: 0 8px; }
+  .hist { display: flex; align-items: flex-end; gap: 7px; height: 84px; padding: 0 6px; }
   .hist .bin { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; min-width: 0; }
-  .hist .bar { width: 100%; max-width: 22px; border-radius: 4px 4px 0 0; background: #6b7590; min-height: 3px; }
-  .hist .bin.you .bar { background: #d9631e; }
-  .hist .cnt { font-size: 10px; color: var(--muted); margin-bottom: 2px; font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .hist .bin.you .cnt { color: var(--text); font-weight: 700; }
-  .hist-x { display: flex; gap: 4px; padding: 0 8px; border-top: 1px solid var(--border); }
-  .hist-x .lbl { flex: 1; text-align: center; font-size: 10px; color: var(--muted); padding-top: 3px; min-width: 0; white-space: nowrap; }
+  .hist .bar { width: 100%; max-width: 32px; border-radius: 5px 5px 2px 2px; background: linear-gradient(180deg, #4cc47d, #2f9d57); min-height: 4px; box-shadow: inset 0 1px 0 rgba(255,255,255,.18); }
+  .hist .bin.you .bar { background: linear-gradient(180deg, #ff9d57, #df6a1e); }
+  .hist .cnt { font-size: 10px; color: var(--muted); margin-bottom: 3px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .hist .bin.you .cnt { color: var(--text); font-weight: 800; }
+  .hist-x { display: flex; gap: 7px; padding: 0 6px; border-top: 1px solid var(--border); }
+  .hist-x .lbl { flex: 1; text-align: center; font-size: 11px; color: var(--muted); padding-top: 4px; min-width: 0; white-space: nowrap; }
   .hist-x .lbl.you { color: var(--text); font-weight: 700; }
+  .hist-x .lbl .you-tag { display: block; color: var(--orange); font-weight: 800; font-size: 10px; margin-top: 1px; }
 
   .result h3, .result summary.h3 { font-size: var(--fs-2xs); text-transform: uppercase; letter-spacing: 1.2px; color: var(--muted); margin: 6px 0 3px; display: flex; align-items: center; gap: 10px; font-weight: 700; }
   .result h3::after, .result summary.h3::after { content: ""; flex: 1; height: 1px; background: var(--border); }
@@ -235,12 +235,7 @@
   .final td { color: var(--text-2); white-space: nowrap; }
   .final td:first-child { font-weight: 700; color: var(--text); }
 
-  .card { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-s); padding: 7px 10px; font-size: var(--fs-sm); line-height: 1.45; }
-  .trail-line { font-variant-numeric: tabular-nums; font-weight: 600; }
-  .trail-sub { color: var(--muted); font-size: var(--fs-xs); margin-top: 2px; }
-  .trail-sub b { color: var(--text-2); font-weight: 700; }
-  .deduction-actions { display: flex; gap: 8px; margin-top: 5px; }
-  /* mini leaderboard (top-3 of the day) - replaces the trail block */
+  /* mini leaderboard (top-3 of the day) */
   .lb-mini { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-s); padding: 3px 10px; font-size: var(--fs-sm); }
   .lb-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-variant-numeric: tabular-nums; }
   .lb-row .lb-rank { width: 20px; text-align: center; flex-shrink: 0; }
@@ -296,7 +291,7 @@
     #btn-hint { flex: 0 0 44px; padding: 4px; } #btn-hint .btxt { display: none; }
     .toast { bottom: 70px; } body.modal-open .toast { bottom: 12px; }
     .result { padding: 14px 10px 10px; }
-    .hist { padding: 0 2px; gap: 3px; } .hist-x { padding: 0 2px; gap: 3px; }
+    .hist { padding: 0 2px; gap: 5px; } .hist-x { padding: 0 2px; gap: 5px; }
     .final td, .final th { padding: 6px 6px; font-size: var(--fs-xs); }
     .coach-tip { max-width: calc(100vw - 32px); }
   }

@@ -6,3 +6,9 @@ dist/
 
 # internal agent deploy notes (kept local, not for public repo)
 DEPLOY.md
+
+# os / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

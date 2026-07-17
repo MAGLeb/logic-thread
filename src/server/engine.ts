@@ -1,5 +1,5 @@
-// Logic Thread - движок сложности. Порт reference-реализации engine/engine.py на TypeScript,
-// модель-в-модель. Проверяется на паритет тестами engine.test.ts (те же якоря Case #0/#1 + fork).
+// Deducto - difficulty engine. A deterministic TypeScript port of a Python reference solver,
+// model-for-model, parity-checked by engine.test.ts (same Case #0/#1 anchors + fork).
 //
 //   Puzzle  - задача + brute-force уникальность + WEAK-модель (домены на подозреваемого).
 //   Grid    - GRID-модель (все попарные сетки value×value + транзитивность).

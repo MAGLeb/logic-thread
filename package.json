@@ -2,7 +2,8 @@
   "private": true,
   "name": "deducto-puzzle",
   "version": "0.0.0",
-  "license": "BSD-3-Clause",
+  "description": "Deducto - a daily deduction puzzle for Reddit, built on Devvit Web (interactive post + Express server).",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "build:bank": "tsx scripts/build-bank.ts 120",
@@ -13,7 +14,7 @@
     "dev:server": "cd src/server && vite build --watch",
     "dev:devvit": "devvit playtest",
     "dev": "concurrently -k -p \"[{name}]\" -n \"CLIENT,SERVER,DEVVIT\" -c \"cyan,green,magenta\" \"npm run dev:client\" \"npm run dev:server\" \"npm run dev:devvit\"",
-    "install:all": "devvit install logic_thread_dail_dev && devvit install LogicThreadGame",
+    "install:all": "devvit install deducto_puzzle_dev && devvit install deducto_puzzle",
     "deploy": "npm run build && devvit upload && npm run install:all",
     "launch": "npm run build && devvit upload && devvit publish && npm run install:all",
     "login": "devvit login",

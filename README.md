@@ -14,7 +14,7 @@ Every day one post becomes a fresh **case**: a 4-suspect × 3-category logic gri
 
 ## The hook - why detectives come back
 
-- 🗓️ **A new case every day** - published from the moderator menu (a daily scheduler is available too).
+- 🗓️ **A new case every day** - published by a moderator from the menu (an optional daily scheduler ships in the code).
 - 🔥 **Streaks & ranks** - solve daily to climb 🔎 Detective → 🕵️ Inspector → 🎩 Chief Inspector → 🧠 Mastermind → 🏛 Legend of the Yard.
 - 🏆 **Per-case leaderboard** - the day's three fastest detectives, plus your own rank and time.
 - 🗳️ **Community difficulty vote** - after solving, everyone votes **Harder / Same / Softer**; the majority sets tomorrow's case.
@@ -55,7 +55,7 @@ The whole loop lives inside a single Reddit post - nothing ever leaves the platf
 Devvit requires **Node ≥ 22** (`nvm install 22 && nvm use 22`).
 
 ```bash
-cd logic-thread
+cd deducto
 npm install
 npm run login            # devvit login
 # put a test subreddit in devvit.json → "dev": { "subreddit": "..." }
